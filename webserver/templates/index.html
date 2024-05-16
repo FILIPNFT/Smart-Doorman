@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broj Detektovanih Lica</title>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-database.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        .data-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: inline-block;
+            margin: auto;
+        }
+        .data-point {
+            font-size: 24px;
+            color: #444;
+        }
+        .highlight {
+            color: #0066ff;
+        }
+    </style>
+    <script>
+      var firebaseConfig = {
+        apiKey: "AIzaSyDzbAWMT-nDpMMq1N7k8gUt-nolJucS5lI",
+        authDomain: "iot-raf.firebaseapp.com",
+        databaseURL: "https://iot-raf-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "iot-raf",
+        storageBucket: "iot-raf.appspot.com",
+        messagingSenderId: "665378292120",
+        appId: "1:665378292120:web:f1a9b34dfefa9781feabed",
+        measurementId: "G-T7GMTPCTRQ"
+      };
+      firebase.initializeApp(firebaseConfig);
+    </script>
+</head>
+<body>
+    <div class="data-container">
+        <h1>Broj Detektovanih Lica</h1>
+        <div id="faceCount" class="data-point">U?itavanje...</div>
+    </div>
+
+    <script>
+      var faceCountRef = firebase.database().ref('face_detections').limitToLast(1);
+      faceCountRef.on('value', function(snapshot) {
+          snapshot.forEach(function(childSnapshot) {
+              var data = childSnapshot.val();
+              document.getElementById('faceCount').innerText = data.detected_faces;
+              document.getElementById('faceCount').className += " highlight";
+          });
+      });
+    </script>
+</body>
+</html>
+
