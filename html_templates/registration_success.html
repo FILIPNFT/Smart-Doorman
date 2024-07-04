@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Registration Success{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="display-4">Registration Successful!</h1>
+    <p class="lead">Your device with ID <strong>{{ device_id }}</strong> has been registered successfully.</p>
+    <a href="/register" class="btn btn-primary">Register another device</a>
+    <a href="{{ url_for('rfid') }}" class="btn btn-primary">Open App</a></a>
+</div>
+{% endblock %}

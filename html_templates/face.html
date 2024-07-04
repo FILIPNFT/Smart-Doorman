@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Face Detection Logs{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/instascan@1.0.0/dist/instascan.min.js"></script>
+<div class="data-container my-5 p-5 shadow rounded bg-light text-center">
+    <h1 class="display-4">Face Detection Logs</h1>
+    <p class="lead" id="faceCount" style="color: #28a745; font-size: 24px;">Loading...</p>
+    <button id="policeButton" class="btn btn-danger hidden" onclick="alert('Calling the police!')">Call the Police</button>
+</div>
+
+<script>
+    var firebaseConfig = {
+        apiKey: "",
+        authDomain: "",
+        databaseURL: "",
+        projectId: "",
+        storageBucket: "",
+        messagingSenderId: "",
+        appId: "",
+        measurementId: ""
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    var faceCountRef = firebase.database().ref('face_detections').limitToLast(1);
+    faceCountRef.on('value', function(snapshot) {
+        snapshot.forEach(function(childSnapshot) {
+            var data = childSnapshot.val();
+            document.getElementById('faceCount').innerText = `${data.detected_faces} faces detected`;
+            if (data.detected_faces >= 10) {
+                document.getElementById('policeButton').classList.remove('hidden');
+            } else {
+                document.getElementById('policeButton').classList.add('hidden');
+            }
+        });
+    });
+</script>
+<canvas id="faceChart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('faceChart').getContext('2d');
+    var faceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],  // Timestamps for the X-axis
+            datasets: [{
+                label: 'Faces Detected',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                data: []  // Data points for the Y-axis
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Faces Detected'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Time of Day'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+
+    function fetchData() {
+        fetch('/data/face')
+        .then(response => response.json())
+        .then(data => {
+            faceChart.data.labels = data.timestamps;
+            faceChart.data.datasets[0].data = data.counts;
+            faceChart.update();
+        })
+        .catch(error => console.error('Error loading the data:', error));
+    }
+
+    fetchData();
+    setInterval(fetchData, 300000);  // Update the chart every 5 minutes
+</script>
+{% endblock %}

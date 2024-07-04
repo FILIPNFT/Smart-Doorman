@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}RFID Entry and Exit Log{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/instascan@1.0.0/dist/instascan.min.js"></script>
+<h1>RFID Entry and Exit Log</h1>
+<table class="table table-striped">
+    <thead class="thead-dark">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Timestamp</th>
+            <th>Duration Inside</th>
+        </tr>
+    </thead>
+    <tbody id="rfidEntries"></tbody>
+</table>
+<script>
+    var firebaseConfig = {
+        apiKey: "", // Public API key
+        authDomain: "",
+        databaseURL: "",
+        projectId: "",
+        storageBucket: "",
+        messagingSenderId: "",
+        appId: "",
+        measurementId: ""
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+</script>
+<script>
+    var entriesRef = firebase.database().ref('rfid_entries');
+    entriesRef.on('value', function(snapshot) {
+        var entries = "";
+        snapshot.forEach(function(childSnapshot) {
+            var data = childSnapshot.val();
+            entries += `<tr><td>${childSnapshot.key}</td><td>${data.text || '---'}</td><td>${data.status}</td><td>${data.timestamp}</td><td>${data.duration || '---'}</td></tr>`;
+        });
+        document.getElementById('rfidEntries').innerHTML = entries;
+    });
+</script>
+<canvas id="rfidChart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('rfidChart').getContext('2d');
+    var rfidChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Accesses Per Hour',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                data: []
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    fetch('/data/rfid').then(response => response.json()).then(data => {
+        rfidChart.data.labels = data.timestamps;
+        rfidChart.data.datasets.forEach(dataset => {
+            dataset.data = data.counts;
+        });
+        rfidChart.update();
+    });
+</script>
+{% endblock %}
